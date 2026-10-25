@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Minute Jar</title>
+<meta name="theme-color" content="#ffefae">
+<meta name="description" content="Kids earn screen time by finishing their routines. A visual timer handles the rest.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Quicksand:wght@500..700&display=swap">
+<style>
+/* Minute Jar app. Palette: Sanzo Wada, A Dictionary of Color Combinations, No. 290.
+   Single warm light theme on purpose: the palette is the brand. */
+:root{
+  --lake:#6d4145;      /* Vistoris Lake: ink, primary buttons */
+  --lemon:#ffefae;     /* Pale Lemon Yellow: ground */
+  --lincoln:#555832;   /* Lincoln Green: done, success */
+  --cobalt:#96d1aa;    /* Cobalt Green: earned minutes */
+  --paper:#fff8d9;     /* lifted lemon for cards */
+  --sand:#f4e39c;      /* pressed lemon for tracks */
+  --line:#e7d590;
+  --mute:#7a5a52;
+  --olive-ink:#3b3a22; /* text on cobalt */
+  --display:"Young Serif",Georgia,"Times New Roman",serif;
+  --body:"Quicksand",ui-rounded,"Nunito",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--lemon);color:var(--lake);font-family:var(--body);font-weight:600;font-size:17px;line-height:1.45;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--lincoln);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.1;text-wrap:balance}
+p{margin:0}
+#app{max-width:680px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:20px;
+  padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:12px 22px;border:0;border-radius:18px;background:var(--lake);color:var(--lemon);font-family:var(--display);font-size:20px;line-height:1.1;text-align:center;transition:transform .12s ease,opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none}
+.btn.wide{width:100%}
+.btn svg{width:18px;height:18px;flex:none}
+.btn.ghost{background:var(--paper);color:var(--lake);box-shadow:inset 0 0 0 2px var(--line)}
+.btn.green{background:var(--lincoln);color:var(--lemon)}
+.btn.small{min-height:44px;font-size:16px;padding:8px 16px;border-radius:14px}
+.btn.danger{color:#8a2b2b}
+.linkbtn{background:none;border:0;padding:8px;color:var(--mute);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.card{background:var(--paper);border-radius:24px;padding:18px}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-size:20px;display:flex;align-items:center;gap:8px}
+.brand svg{width:28px;height:28px}
+.kids{display:flex;gap:8px;flex-wrap:wrap}
+.kidchip{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;border-radius:999px;padding:4px 14px 4px 4px;font-weight:700;box-shadow:inset 0 0 0 2px var(--line)}
+.kidchip.on{background:var(--paper);box-shadow:inset 0 0 0 2px var(--lake)}
+.av{width:34px;height:34px;border-radius:50%;display:inline-grid;place-items:center;font-family:var(--display);font-size:17px;flex:none}
+.grownup{position:relative;overflow:hidden;border:0;border-radius:999px;background:var(--paper);box-shadow:inset 0 0 0 2px var(--line);padding:9px 16px;font-weight:700;font-size:15px;color:var(--mute);display:inline-flex;align-items:center;gap:6px;touch-action:none;user-select:none;-webkit-user-select:none}
+.grownup::after{content:"";position:absolute;inset:0;background:var(--cobalt);opacity:.55;transform:scaleX(0);transform-origin:left;z-index:0}
+.grownup.holding::after{transform:scaleX(1);transition:transform 1s linear}
+.grownup>*{position:relative;z-index:1}
+.grownup svg{width:16px;height:16px}
+
+/* Kid home */
+.hello{font-size:clamp(34px,8vw,46px)}
+.hello small{display:block;font-family:var(--body);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+.bank{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.bankring{position:relative;width:118px;height:118px}
+.bankring .ring{width:100%;height:100%}
+.bankring b{position:absolute;inset:0;display:grid;place-items:center;align-content:center;font-family:var(--display);font-weight:400;font-size:38px;line-height:1}
+.bankring b small{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.04em}
+.bank h2{font-size:24px}
+.bank p{color:var(--mute);font-size:15px;margin-top:4px}
+.ring-fill{transition:stroke-dashoffset .7s cubic-bezier(.3,.7,.2,1)}
+.sectionhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sectionhead h2{font-size:22px}
+.sectionhead span{color:var(--mute);font-size:15px}
+.tasks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.task{position:relative;display:grid;justify-items:center;gap:8px;text-align:center;border:0;background:var(--paper);border-radius:22px;padding:16px 10px 14px;min-height:150px;box-shadow:inset 0 0 0 2px transparent;transition:background .2s,transform .12s}
+.task:active{transform:scale(.97)}
+.task .pic{width:64px;height:64px;border-radius:50%;background:var(--lemon);display:grid;place-items:center;font-size:36px;line-height:1}
+.task .tname{font-weight:700;font-size:16px;line-height:1.2}
+.task .pts{font-family:var(--display);font-size:15px;background:var(--cobalt);color:var(--olive-ink);border-radius:999px;padding:2px 12px}
+.task.done{background:var(--lincoln);color:var(--lemon)}
+.task.done .pic{background:rgba(255,239,174,.16)}
+.task.done .pts{background:var(--lemon);color:var(--lincoln)}
+.task.pending{box-shadow:inset 0 0 0 2.5px var(--lake);background:var(--lemon)}
+.task .tick{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:var(--lemon);color:var(--lincoln);display:grid;place-items:center}
+.task .tick svg{width:16px;height:16px}
+.task .wait{font-size:13px;font-weight:700;color:var(--mute)}
+.task.pop{animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+.empty{text-align:center;padding:28px 18px;display:grid;gap:8px;justify-items:center}
+.empty p{color:var(--mute)}
+.startbar{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));margin-top:auto;padding-top:8px}
+.startbar .btn{width:100%;min-height:64px;font-size:22px;box-shadow:0 10px 24px -12px rgba(109,65,69,.7)}
+
+/* Sheets */
+.scrim{position:fixed;inset:0;background:rgba(59,30,33,.42);display:flex;align-items:flex-end;justify-content:center;z-index:20;animation:fade .2s ease}
+.sheet{width:100%;max-width:560px;max-height:92vh;overflow:auto;background:var(--lemon);border-radius:28px 28px 0 0;
+  padding:24px max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));display:grid;gap:16px;animation:rise .25s cubic-bezier(.3,.7,.2,1)}
+@media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:28px;padding-bottom:24px}}
+.sheet h2{font-size:28px}
+.sheet .sub{color:var(--mute)}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{transform:translateY(40px);opacity:0}}
+.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.choice{border:0;border-radius:18px;background:var(--paper);box-shadow:inset 0 0 0 2px var(--line);padding:14px 8px;display:grid;gap:2px;justify-items:center}
+.choice b{font-family:var(--display);font-weight:400;font-size:30px;line-height:1}
+.choice span{font-size:13px;color:var(--mute);font-weight:700}
+.choice.all{background:var(--cobalt);box-shadow:none;color:var(--olive-ink)}
+.choice.all span{color:var(--olive-ink)}
+
+/* PIN */
+.pinsheet{justify-items:center;text-align:center}
+.dots{display:flex;gap:14px;padding:6px}
+.dots i{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 2.5px var(--lake)}
+.dots i.on{background:var(--lake)}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pad{display:grid;grid-template-columns:repeat(3,76px);gap:12px}
+.pad button{height:76px;border-radius:50%;border:0;background:var(--paper);box-shadow:inset 0 0 0 2px var(--line);font-family:var(--display);font-size:28px}
+.pad button:active{background:var(--sand)}
+.pad .blank{visibility:hidden}
+.err{color:#8a2b2b;font-weight:700;min-height:1.45em}
+
+/* Timer */
+.timer{position:fixed;inset:0;background:var(--lake);color:var(--lemon);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));z-index:10}
+.t-who{font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:14px;opacity:.8}
+.t-ring{position:relative;width:min(300px,74vw);aspect-ratio:1;max-width:100%}
+.t-ring .ring{width:100%;height:100%}
+.t-ring .ring-fill{transition:stroke-dashoffset .3s linear}
+.t-num{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:4px}
+.t-num span{font-family:var(--display);font-size:clamp(54px,15vw,76px);line-height:1;font-variant-numeric:tabular-nums}
+.t-num small{font-size:15px;font-weight:700;opacity:.8}
+.t-warn{background:var(--lemon);color:var(--lake);border-radius:16px;padding:12px 18px;font-weight:700;max-width:340px}
+.t-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.btn.light{background:var(--lemon);color:var(--lake)}
+.btn.outline{background:transparent;color:var(--lemon);box-shadow:inset 0 0 0 2px rgba(255,239,174,.5)}
+.timer h1{font-size:clamp(44px,12vw,64px)}
+.timer .big{font-size:56px;line-height:1}
+
+/* Parent */
+.phead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.phead h1{font-size:30px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--paper);border-radius:16px;padding:4px;box-shadow:inset 0 0 0 2px var(--line)}
+.tabs button{border:0;background:transparent;border-radius:12px;padding:10px 4px;font-weight:700;font-size:15px;color:var(--mute)}
+.tabs button[aria-selected="true"]{background:var(--lake);color:var(--lemon)}
+.stack{display:grid;gap:14px}
+.pk-head{display:flex;align-items:center;gap:12px}
+.pk-head h3{font-size:22px;flex:1;min-width:0}
+.pk-bal{font-family:var(--display);font-size:22px}
+.pk-bal small{font-family:var(--body);font-size:13px;color:var(--mute);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 0;padding:0}
+.stats div{background:var(--lemon);border-radius:14px;padding:8px 10px}
+.stats dt{font-size:12px;color:var(--mute);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.stats dd{margin:0;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row .lab{font-weight:700;font-size:15px;color:var(--mute);margin-right:4px}
+.mini{border:0;border-radius:12px;background:var(--lemon);box-shadow:inset 0 0 0 2px var(--line);padding:8px 12px;font-weight:700;font-size:15px;min-height:40px}
+.mini.ok{background:var(--lincoln);color:var(--lemon);box-shadow:none}
+.pend{display:grid;gap:8px;margin-top:12px}
+.pend-item{display:flex;align-items:center;gap:10px;background:var(--lemon);border-radius:14px;padding:8px 10px}
+.pend-item span{flex:1;min-width:0;font-weight:700}
+.hist{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;font-variant-numeric:tabular-nums}
+.hist th{text-align:left;color:var(--mute);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding:4px 6px}
+.hist td{padding:6px;border-top:1px solid var(--line)}
+.hist .bar{height:8px;border-radius:4px;background:var(--cobalt);display:block;min-width:2px}
+.trow{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;border:0;background:var(--paper);border-radius:18px;padding:10px 14px}
+.trow .pic{width:48px;height:48px;border-radius:50%;background:var(--lemon);display:grid;place-items:center;font-size:26px}
+.trow b{display:block;font-weight:700}
+.trow small{color:var(--mute);font-size:14px}
+.trow .pts{font-family:var(--display);background:var(--cobalt);color:var(--olive-ink);border-radius:999px;padding:2px 12px;font-size:15px}
+.ideas{display:flex;flex-wrap:wrap;gap:8px}
+label,.lbl{font-weight:700;font-size:15px;color:var(--mute);display:block}
+.field{display:grid;gap:6px}
+input[type=text],input[type=password],input[type=tel]{width:100%;min-height:52px;border-radius:14px;border:2px solid var(--line);background:var(--paper);padding:10px 14px;font-weight:700;font-size:18px;color:var(--lake)}
+input:focus{outline:none;border-color:var(--lake)}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px}
+.icons button{height:48px;border-radius:14px;border:0;background:var(--paper);font-size:26px;box-shadow:inset 0 0 0 2px transparent}
+.icons button[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--lake);background:var(--lemon)}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:52px;height:52px;border-radius:50%;border:0;background:var(--paper);box-shadow:inset 0 0 0 2px var(--line);font-size:26px;font-weight:700}
+.stepper output{font-family:var(--display);font-size:26px;min-width:5ch;text-align:center;font-variant-numeric:tabular-nums}
+.days{display:flex;flex-wrap:wrap;gap:6px}
+.days button{min-width:52px;min-height:44px;border-radius:12px;border:0;background:var(--paper);box-shadow:inset 0 0 0 2px var(--line);font-weight:700;font-size:15px}
+.days button[aria-pressed="true"]{background:var(--lake);color:var(--lemon);box-shadow:none}
+.sheet-actions{display:grid;gap:10px}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;text-align:left;border:0;background:var(--paper);border-radius:18px;padding:14px 16px}
+.switch b{display:block;font-weight:700}
+.switch small{display:block;color:var(--mute);font-size:14px;font-weight:600}
+.switch i{flex:none;width:52px;height:32px;border-radius:999px;background:var(--sand);position:relative;transition:background .2s}
+.switch i::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch[aria-checked="true"] i{background:var(--lincoln)}
+.switch[aria-checked="true"] i::after{transform:translateX(20px)}
+.swatches{display:flex;gap:8px}
+.swatches button{width:40px;height:40px;border-radius:50%;border:0;box-shadow:inset 0 0 0 3px transparent}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--lemon),0 0 0 6px var(--lake)}
+.note{color:var(--mute);font-size:14px}
+.kidcard{display:grid;gap:14px}
+
+/* Onboarding */
+.onb{display:grid;gap:22px;align-content:start;padding-top:4vh}
+.onb h1{font-size:clamp(36px,9vw,52px)}
+.onb .lede{font-size:18px;color:var(--mute);max-width:40ch}
+.steps{display:flex;gap:6px}
+.steps i{height:6px;flex:1;border-radius:3px;background:var(--sand)}
+.steps i.on{background:var(--lake)}
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.pick button{display:flex;align-items:center;gap:10px;text-align:left;border:0;border-radius:16px;background:var(--paper);padding:10px 12px;box-shadow:inset 0 0 0 2px var(--line);font-weight:700;font-size:15px}
+.pick button span:first-child{font-size:24px}
+.pick button[aria-pressed="true"]{background:var(--lincoln);color:var(--lemon);box-shadow:none}
+.hero-jar{width:120px;height:120px}
+
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--lake);color:var(--lemon);padding:12px 18px;border-radius:16px;font-weight:700;font-size:15px;max-width:min(92vw,440px);text-align:center;z-index:40;box-shadow:0 10px 30px -10px rgba(0,0,0,.4);animation:rise .25s ease}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (max-width:420px){.stats{grid-template-columns:repeat(2,1fr)}.pad{grid-template-columns:repeat(3,68px)}.pad button{height:68px}.bankring{width:100px;height:100px}.bankring b{font-size:32px}}
+</style>
+</head>
+<body>
+<div id="app" aria-live="polite"></div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'minutejar.v1';
+  var ICONS = ['🪥','🛏️','👕','🥣','🎒','📚','✏️','🧸','🍽️','🐶','🌱','🧺','🛁','🎹','⚽','🥦','💧','🧹','🗑️','🙌','🎨','🧩','🚲','🍎','😴','🧦','🎻','🧘'];
+  var STARTER = [
+    { label: 'Brush teeth', icon: '🪥', minutes: 5 },
+    { label: 'Make bed', icon: '🛏️', minutes: 5 },
+    { label: 'Get dressed', icon: '👕', minutes: 5 },
+    { label: 'Reading time', icon: '📚', minutes: 15 },
+    { label: 'Tidy toys', icon: '🧸', minutes: 10 },
+    { label: 'Homework', icon: '✏️', minutes: 15 },
+    { label: 'Set the table', icon: '🍽️', minutes: 5 },
+    { label: 'Play outside', icon: '⚽', minutes: 10 },
+    { label: 'Feed the pet', icon: '🐶', minutes: 5 },
+    { label: 'Eat your veggies', icon: '🥦', minutes: 5 },
+    { label: 'Bath time', icon: '🛁', minutes: 5 },
+    { label: 'Practice music', icon: '🎹', minutes: 10 }
+  ];
+  var DEFAULT_PICK = [0, 1, 2, 3, 4, 5];
+  var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var DAYNAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var EVERY = [0, 1, 2, 3, 4, 5, 6], SCHOOL = [1, 2, 3, 4, 5], WEEKEND = [0, 6];
+  var KIDCOLORS = [
+    { bg: '#6d4145', fg: '#ffefae' },
+    { bg: '#555832', fg: '#ffefae' },
+    { bg: '#96d1aa', fg: '#3b3a22' }
+  ];
+  var CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var LOCK = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2" fill="currentColor"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  var JAR = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="18" y="6" width="28" height="9" rx="3" fill="#555832"/><path d="M16 18h32a4 4 0 014 4v30a8 8 0 01-8 8H20a8 8 0 01-8-8V22a4 4 0 014-4z" fill="#fff8d9" stroke="#6d4145" stroke-width="3"/><path d="M14.5 38h35v14a6 6 0 01-6 6h-23a6 6 0 01-6-6z" fill="#96d1aa"/><circle cx="32" cy="46" r="2.6" fill="#555832"/><path d="M32 46v-5" stroke="#555832" stroke-width="2.2" stroke-linecap="round"/></svg>';
+
+  // ---------- state ----------
+  function blank() {
+    return { v: 1, pin: null, settings: { approval: false, sound: true }, kids: [], active: null, session: null };
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var s = JSON.parse(raw); if (s && s.v === 1) return s; }
+    } catch (e) {}
+    return blank();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  var S = load();
+  var ui = {
+    view: 'kid', sheet: null, ptab: 'today', pkid: null,
+    pin: '', pinErr: '', gate: null, edit: null, confirm: null, pop: null,
+    onb: { step: 0, name: '', cap: 60, picked: DEFAULT_PICK.slice(), pin: '' }
+  };
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function dk(d) { d = d || new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function uid() { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function kidById(id) { for (var i = 0; i < S.kids.length; i++) if (S.kids[i].id === id) return S.kids[i]; return null; }
+  function activeKid() { var k = kidById(S.active) || S.kids[0]; if (k) S.active = k.id; return k; }
+  function mkTask(t) { return { id: uid(), label: t.label, icon: t.icon, minutes: t.minutes, days: (t.days || EVERY).slice() }; }
+  function newKid(name, cap) {
+    return { id: uid(), name: name, color: S.kids.length % KIDCOLORS.length, cap: cap, rollover: false, tasks: [], log: {} };
+  }
+
+  function earnedOf(L) { var e = 0; for (var id in L.done) if (L.done[id].s === 'done') e += L.done[id].m; return e; }
+  function availOf(k, L) { return Math.max(0, Math.min(k.cap, L.carry + earnedOf(L) + L.bonus)); }
+  function balanceOf(k, L) { return Math.max(0, availOf(k, L) - L.spent); }
+  function logFor(k, key) {
+    key = key || dk();
+    var L = k.log[key];
+    if (!L) {
+      var carry = 0;
+      if (k.rollover) {
+        var prev = Object.keys(k.log).filter(function (x) { return x < key; }).sort().pop();
+        if (prev) carry = balanceOf(k, k.log[prev]);
+      }
+      L = k.log[key] = { done: {}, bonus: 0, spent: 0, carry: carry };
+      var keys = Object.keys(k.log).sort();
+      while (keys.length > 45) delete k.log[keys.shift()];
+      save();
+    }
+    return L;
+  }
+  function tasksToday(k) { var d = new Date().getDay(); return k.tasks.filter(function (t) { return t.days.indexOf(d) > -1; }); }
+  function daysLabel(days) {
+    var s = days.slice().sort().join(',');
+    if (s === EVERY.join(',')) return 'Every day';
+    if (s === SCHOOL.join(',')) return 'School days';
+    if (s === WEEKEND.join(',')) return 'Weekends';
+    if (!days.length) return 'No days picked';
+    return days.slice().sort().map(function (d) { return DAYS[d]; }).join(', ');
+  }
+
+  // ---------- sound ----------
+  var ac = null;
+  function chime(kind) {
+    if (!S.settings.sound) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      if (kind === 'warmup') return; // unlock audio during a tap so the end-of-timer chime can play later
+      var notes = kind === 'done' ? [659, 880] : kind === 'warn' ? [587, 587] : [784, 659, 523];
+      var t = ac.currentTime;
+      notes.forEach(function (f, i) {
+        var o = ac.createOscillator(), g = ac.createGain(), at = t + i * 0.17;
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(0.16, at + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.55);
+        o.connect(g); g.connect(ac.destination); o.start(at); o.stop(at + 0.6);
+      });
+    } catch (e) {}
+  }
+
+  // ---------- bits ----------
+  var lastFrac = {};
+  function ring(id, frac, size, stroke, track, fill) {
+    var r = (size - stroke) / 2, c = 2 * Math.PI * r, h = size / 2;
+    var from = lastFrac[id] == null ? frac : lastFrac[id];
+    lastFrac[id] = frac;
+    return '<svg class="ring" viewBox="0 0 ' + size + ' ' + size + '" aria-hidden="true">' +
+      '<circle cx="' + h + '" cy="' + h + '" r="' + r + '" fill="none" stroke="' + track + '" stroke-width="' + stroke + '"/>' +
+      '<circle class="ring-fill" data-c="' + c + '" data-to="' + frac + '" cx="' + h + '" cy="' + h + '" r="' + r + '" fill="none" stroke="' + fill + '" stroke-width="' + stroke +
+      '" stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + (c * (1 - from)) + '" transform="rotate(-90 ' + h + ' ' + h + ')"/></svg>';
+  }
+  function avatar(k) {
+    var c = KIDCOLORS[k.color] || KIDCOLORS[0];
+    return '<span class="av" style="background:' + c.bg + ';color:' + c.fg + '">' + esc((k.name || '?').charAt(0).toUpperCase()) + '</span>';
+  }
+  var toastTimer;
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+
+  // ---------- views ----------
+  function vOnboard() {
+    var o = ui.onb, st = o.step, steps = '';
+    if (st > 0) { steps = '<div class="steps" aria-label="Step ' + st + ' of 3">'; for (var i = 1; i <= 3; i++) steps += '<i class="' + (i <= st ? 'on' : '') + '"></i>'; steps += '</div>'; }
+    if (st === 0) {
+      return '<div class="onb"><div class="hero-jar">' + JAR + '</div>' +
+        '<h1>Welcome to Minute Jar</h1>' +
+        '<p class="lede">Your child earns screen minutes by finishing tasks you choose. When they spend them, a big friendly timer counts down, so you don\'t have to be the bad guy.</p>' +
+        '<button class="btn wide" data-act="onb-next">Set up in 2 minutes</button>' +
+        '<button class="linkbtn" data-act="demo">Or look around with an example family</button></div>';
+    }
+    if (st === 1) {
+      return '<div class="onb">' + steps + '<h1>Who is this jar for?</h1>' +
+        '<div class="field"><label for="onb-name">Child\'s first name</label><input type="text" id="onb-name" data-in="onb-name" maxlength="20" autocomplete="off" placeholder="e.g. Maya" value="' + esc(o.name) + '"></div>' +
+        '<div class="field"><span class="lbl">Most screen time per day</span><div class="days">' +
+        [30, 60, 90, 120].map(function (m) { return '<button data-act="onb-cap" data-n="' + m + '" aria-pressed="' + (o.cap === m) + '">' + m + ' min</button>'; }).join('') +
+        '</div><p class="note">They can never earn more than this in one day. You can change it later.</p></div>' +
+        '<button class="btn wide" data-act="onb-next">Next</button><button class="linkbtn" data-act="onb-back">Back</button></div>';
+    }
+    if (st === 2) {
+      return '<div class="onb">' + steps + '<h1>Pick a few tasks</h1>' +
+        '<p class="lede">Start small. Five or six is plenty. You can rename tasks and change their minutes any time.</p>' +
+        '<div class="pick">' + STARTER.map(function (t, i) {
+          return '<button data-act="onb-pick" data-i="' + i + '" aria-pressed="' + (o.picked.indexOf(i) > -1) + '"><span>' + t.icon + '</span><span>' + esc(t.label) + '<br><small>+' + t.minutes + ' min</small></span></button>';
+        }).join('') + '</div>' +
+        '<button class="btn wide" data-act="onb-next"' + (o.picked.length ? '' : ' disabled') + '>Next</button><button class="linkbtn" data-act="onb-back">Back</button></div>';
+    }
+    var dots = ''; for (var j = 0; j < 4; j++) dots += '<i class="' + (j < o.pin.length ? 'on' : '') + '"></i>';
+    return '<div class="onb" style="justify-items:center;text-align:center">' + steps + '<h1>Choose a grown-up PIN</h1>' +
+      '<p class="lede">You\'ll use these 4 digits to change tasks and add bonus minutes. Pick one your child doesn\'t know.</p>' +
+      '<div class="dots">' + dots + '</div>' + keypad('onb-pd') +
+      '<button class="btn wide" data-act="onb-finish"' + (o.pin.length === 4 ? '' : ' disabled') + '>Finish setup</button><button class="linkbtn" data-act="onb-back">Back</button></div>';
+  }
+
+  function keypad(act) {
+    var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
+    return '<div class="pad">' + keys.map(function (k) {
+      if (!k) return '<button class="blank" tabindex="-1" aria-hidden="true"></button>';
+      if (k === 'del') return '<button data-act="' + act + '" data-d="del" aria-label="Delete">⌫</button>';
+      return '<button data-act="' + act + '" data-d="' + k + '">' + k + '</button>';
+    }).join('') + '</div>';
+  }
+
+  function vKid() {
+    var k = activeKid(), L = logFor(k), bal = balanceOf(k, L), av = availOf(k, L), now = new Date();
+    var left = S.kids.length > 1
+      ? '<div class="kids">' + S.kids.map(function (x) { return '<button class="kidchip' + (x.id === k.id ? ' on' : '') + '" data-act="kid" data-id="' + x.id + '" aria-pressed="' + (x.id === k.id) + '">' + avatar(x) + '<span>' + esc(x.name) + '</span></button>'; }).join('') + '</div>'
+      : '<span class="brand">' + JAR + 'Minute Jar</span>';
+    var tasks = tasksToday(k);
+    var sub = av >= k.cap ? 'The jar is full for today!' : av + ' of ' + k.cap + ' earned today';
+    if (L.spent) sub += ' · ' + L.spent + ' used';
+    var grid = tasks.length ? '<div class="tasks">' + tasks.map(function (t) {
+      var d = L.done[t.id], cls = d ? (d.s === 'done' ? ' done' : ' pending') : '';
+      if (ui.pop === t.id) cls += ' pop';
+      return '<button class="task' + cls + '" data-act="task" data-id="' + t.id + '" aria-pressed="' + (!!d) + '">' +
+        (d && d.s === 'done' ? '<span class="tick">' + CHECK + '</span>' : '') +
+        '<span class="pic" aria-hidden="true">' + t.icon + '</span><span class="tname">' + esc(t.label) + '</span>' +
+        (d && d.s === 'pending' ? '<span class="wait">Waiting for a grown-up</span>' : '<span class="pts">+' + t.minutes + ' min</span>') + '</button>';
+    }).join('') + '</div>'
+      : '<div class="card empty"><p>No tasks for ' + DAYNAMES[now.getDay()] + ' yet.</p><p>A grown-up can add some in the Tasks tab.</p></div>';
+    ui.pop = null;
+    return '<div class="top">' + left + '<button class="grownup" data-hold="1" aria-label="Grown-ups: press and hold to open">' + LOCK + '<span>Grown-ups</span></button></div>' +
+      '<h1 class="hello"><small>' + DAYNAMES[now.getDay()] + '</small>Hi, ' + esc(k.name) + '!</h1>' +
+      '<section class="card bank" aria-label="Your minutes"><div class="bankring">' + ring('bank-' + k.id, k.cap ? bal / k.cap : 0, 120, 14, '#f4e39c', '#96d1aa') + '<b>' + bal + '<small>min</small></b></div>' +
+      '<div><h2>' + (bal ? bal + ' minutes to spend' : 'Your jar is empty') + '</h2><p>' + sub + '</p></div></section>' +
+      '<div class="sectionhead"><h2>Today\'s tasks</h2><span>Tap when you\'re done</span></div>' + grid +
+      '<div class="startbar"><button class="btn" data-act="start-sheet"' + (bal ? '' : ' disabled') + '>' + (bal ? 'Start screen time' : 'Finish a task to earn minutes') + '</button></div>';
+  }
+
+  function leftMs() { var s = S.session; return Math.max(0, s.paused ? s.left : s.endsAt - Date.now()); }
+  function fmt(ms) { var sec = Math.ceil(ms / 1000), m = Math.floor(sec / 60); return m + ':' + pad2(sec % 60); }
+
+  function vTimer() {
+    var s = S.session, k = kidById(s.kidId) || S.kids[0], ms = leftMs();
+    if (ms <= 0) {
+      var L = k ? logFor(k) : null, bal = L ? balanceOf(k, L) : 0;
+      return '<div class="timer"><div class="hero-jar">' + JAR + '</div><h1>Time\'s up!</h1>' +
+        '<p style="font-size:19px;max-width:30ch">Screens off, ' + esc(k ? k.name : 'friend') + '. Great job sticking to it.</p>' +
+        (bal ? '<p style="opacity:.85">' + bal + ' minutes still in your jar for later.</p>' : '') +
+        '<button class="btn light" data-act="end">Back to my jar</button></div>';
+    }
+    return '<div class="timer" role="timer"><p class="t-who">Screen time · ' + esc(k ? k.name : '') + '</p>' +
+      '<div class="t-ring">' + ring('timer', ms / (s.total * 1000), 300, 22, 'rgba(255,239,174,.16)', '#96d1aa') +
+      '<div class="t-num"><span id="tnum">' + fmt(ms) + '</span><small id="tsub">' + (s.paused ? 'Paused' : 'left') + '</small></div></div>' +
+      '<p class="t-warn" id="twarn"' + (ms > 60000 ? ' hidden' : '') + '>1 minute left. Time to find a good stopping point.</p>' +
+      '<div class="t-actions"><button class="btn light" data-act="pause">' + (s.paused ? 'Keep going' : 'Pause') + '</button>' +
+      '<button class="btn outline" data-act="stop">Stop and save the rest</button></div></div>';
+  }
+
+  function vParent() {
+    var tabs = [['today', 'Today'], ['tasks', 'Tasks'], ['kids', 'Kids'], ['settings', 'Settings']];
+    var body = ui.ptab === 'tasks' ? pTasks() : ui.ptab === 'kids' ? pKids() : ui.ptab === 'settings' ? pSettings() : pToday();
+    return '<div class="phead"><h1>Grown-ups</h1><button class="btn small" data-act="lock">' + LOCK + ' Back to kids</button></div>' +
+      '<div class="tabs" role="tablist">' + tabs.map(function (t) { return '<button role="tab" data-act="ptab" data-t="' + t[0] + '" aria-selected="' + (ui.ptab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="stack">' + body + '</div>';
+  }
+
+  function pToday() {
+    return S.kids.map(function (k) {
+      var L = logFor(k), bal = balanceOf(k, L), byId = {};
+      k.tasks.forEach(function (t) { byId[t.id] = t; });
+      var pend = Object.keys(L.done).filter(function (id) { return L.done[id].s === 'pending'; });
+      var pendHtml = pend.length ? '<div class="pend"><span class="lbl">Waiting for you to check</span>' + pend.map(function (id) {
+        var t = byId[id] || { label: 'Task', icon: '⭐' };
+        return '<div class="pend-item"><span>' + t.icon + ' ' + esc(t.label) + ' · +' + L.done[id].m + '</span><button class="mini ok" data-act="approve" data-k="' + k.id + '" data-id="' + id + '">Approve</button><button class="mini" data-act="reject" data-k="' + k.id + '" data-id="' + id + '">Not yet</button></div>';
+      }).join('') + '</div>' : '';
+      var keys = Object.keys(k.log).sort().reverse().slice(0, 7), maxE = 1;
+      keys.forEach(function (key) { maxE = Math.max(maxE, availOf(k, k.log[key]), k.log[key].spent); });
+      var hist = '<table class="hist"><thead><tr><th>Day</th><th>Earned</th><th>Used</th><th style="width:40%"></th></tr></thead><tbody>' + keys.map(function (key) {
+        var l = k.log[key], p = key.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]), a = availOf(k, l);
+        return '<tr><td>' + (key === dk() ? 'Today' : DAYS[d.getDay()] + ' ' + d.getDate()) + '</td><td>' + a + '</td><td>' + l.spent + '</td><td><span class="bar" style="width:' + Math.round(a / maxE * 100) + '%"></span></td></tr>';
+      }).join('') + '</tbody></table>';
+      return '<article class="card"><div class="pk-head">' + avatar(k) + '<h3>' + esc(k.name) + '</h3><span class="pk-bal">' + bal + ' <small>min left</small></span></div>' +
+        '<dl class="stats"><div><dt>Earned</dt><dd>' + earnedOf(L) + '</dd></div><div><dt>Bonus</dt><dd>' + (L.bonus > 0 ? '+' : '') + L.bonus + '</dd></div><div><dt>Used</dt><dd>' + L.spent + '</dd></div><div><dt>Daily max</dt><dd>' + k.cap + '</dd></div></dl>' +
+        '<div class="row" style="margin-top:12px"><span class="lab">Adjust today</span>' +
+        [-5, 5, 15].map(function (n) { return '<button class="mini" data-act="bonus" data-k="' + k.id + '" data-n="' + n + '">' + (n > 0 ? '+' : '−') + Math.abs(n) + ' min</button>'; }).join('') + '</div>' +
+        pendHtml + hist + '</article>';
+    }).join('');
+  }
+
+  function pTasks() {
+    var k = kidById(ui.pkid) || activeKid(); ui.pkid = k.id;
+    var chips = S.kids.length > 1 ? '<div class="kids">' + S.kids.map(function (x) { return '<button class="kidchip' + (x.id === k.id ? ' on' : '') + '" data-act="pkid" data-id="' + x.id + '" aria-pressed="' + (x.id === k.id) + '">' + avatar(x) + '<span>' + esc(x.name) + '</span></button>'; }).join('') + '</div>' : '';
+    var have = {}; k.tasks.forEach(function (t) { have[t.label.toLowerCase()] = 1; });
+    var ideas = STARTER.map(function (t, i) { return have[t.label.toLowerCase()] ? '' : '<button class="mini" data-act="idea" data-i="' + i + '">+ ' + t.icon + ' ' + esc(t.label) + '</button>'; }).join('');
+    return chips +
+      (k.tasks.length ? k.tasks.map(function (t) {
+        return '<button class="trow" data-act="edit" data-id="' + t.id + '"><span class="pic" aria-hidden="true">' + t.icon + '</span><span><b>' + esc(t.label) + '</b><small>' + daysLabel(t.days) + '</small></span><span class="pts">+' + t.minutes + '</span></button>';
+      }).join('') : '<div class="card empty"><p>' + esc(k.name) + ' has no tasks yet.</p></div>') +
+      '<button class="btn wide" data-act="new-task">Add a task</button>' +
+      (ideas ? '<div class="field"><span class="lbl">Quick ideas</span><div class="ideas">' + ideas + '</div></div>' : '');
+  }
+
+  function pKids() {
+    return S.kids.map(function (k) {
+      return '<article class="card kidcard"><div class="field"><label for="kn-' + k.id + '">Name</label><input type="text" id="kn-' + k.id + '" data-in="kname" data-id="' + k.id + '" maxlength="20" value="' + esc(k.name) + '"></div>' +
+        '<div class="field"><span class="lbl">Color</span><div class="swatches">' + KIDCOLORS.map(function (c, i) { return '<button data-act="kcolor" data-id="' + k.id + '" data-n="' + i + '" aria-label="Color ' + (i + 1) + '" aria-pressed="' + (k.color === i) + '" style="background:' + c.bg + '"></button>'; }).join('') + '</div></div>' +
+        '<div class="field"><span class="lbl">Most screen time per day</span><div class="stepper"><button data-act="kcap" data-id="' + k.id + '" data-n="-15" aria-label="15 minutes less">−</button><output>' + k.cap + ' min</output><button data-act="kcap" data-id="' + k.id + '" data-n="15" aria-label="15 minutes more">+</button></div></div>' +
+        '<button class="switch" role="switch" aria-checked="' + !!k.rollover + '" data-act="kroll" data-id="' + k.id + '"><span><b>Save unused minutes for tomorrow</b><small>Leftover minutes carry over, up to the daily max.</small></span><i></i></button>' +
+        (S.kids.length > 1 ? '<button class="linkbtn" data-act="kdel" data-id="' + k.id + '">Remove ' + esc(k.name) + '</button>' : '') + '</article>';
+    }).join('') + '<button class="btn wide ghost" data-act="kadd">Add another child</button>';
+  }
+
+  function pSettings() {
+    return '<button class="switch" role="switch" aria-checked="' + !!S.settings.approval + '" data-act="sapprove"><span><b>Grown-up checks tasks</b><small>Minutes only arrive after you approve a finished task.</small></span><i></i></button>' +
+      '<button class="switch" role="switch" aria-checked="' + !!S.settings.sound + '" data-act="ssound"><span><b>Sounds</b><small>A soft chime for finished tasks and the timer.</small></span><i></i></button>' +
+      '<article class="card stack"><div class="field"><label for="newpin">New 4-digit PIN</label><input type="password" id="newpin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"></div><button class="btn small" data-act="setpin">Change PIN</button></article>' +
+      '<article class="card stack"><h3 style="font-size:20px">Your data stays here</h3><p class="note">Minute Jar keeps everything on this device. There is no account, no ads and no tracking. Clearing this browser\'s site data also erases the jar.</p><p class="note">The PIN keeps little hands out of these settings. It isn\'t strong security.</p></article>' +
+      '<button class="linkbtn" data-act="wipe">Erase everything and start over</button>';
+  }
+
+  function sheetHtml() {
+    var s = ui.sheet;
+    if (!s) return '';
+    var inner = '';
+    if (s === 'pin') {
+      var dots = ''; for (var i = 0; i < 4; i++) dots += '<i class="' + (i < ui.pin.length ? 'on' : '') + '"></i>';
+      inner = '<div class="sheet pinsheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><h2 id="sh-t">Grown-ups only</h2><p class="sub">Enter your 4-digit PIN</p>' +
+        '<div class="dots' + (ui.pinErr ? ' shake' : '') + '">' + dots + '</div><p class="err">' + esc(ui.pinErr) + '</p>' + keypad('pd') +
+        '<div class="row" style="justify-content:center"><button class="linkbtn" data-act="close">Cancel</button><button class="linkbtn" data-act="forgot">Forgot PIN?</button></div></div>';
+    } else if (s === 'gate') {
+      inner = '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><h2 id="sh-t">Quick grown-up check</h2><p class="sub">Answer this to set a new PIN.</p>' +
+        '<div class="field"><label for="gate-a">What is ' + ui.gate.a + ' × ' + ui.gate.b + '?</label><input type="tel" id="gate-a" inputmode="numeric" maxlength="4" autocomplete="off"></div><p class="err">' + esc(ui.pinErr) + '</p>' +
+        '<div class="sheet-actions"><button class="btn" data-act="gate-ok">Continue</button><button class="btn ghost" data-act="close">Cancel</button></div></div>';
+    } else if (s === 'start') {
+      var k = activeKid(), bal = balanceOf(k, logFor(k));
+      var opts = [10, 15, 20, 30].filter(function (m) { return m < bal; });
+      inner = '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><h2 id="sh-t">How long?</h2><p class="sub">You have ' + bal + ' minutes in your jar.</p><div class="choices">' +
+        opts.map(function (m) { return '<button class="choice" data-act="go" data-n="' + m + '"><b>' + m + '</b><span>minutes</span></button>'; }).join('') +
+        '<button class="choice all" data-act="go" data-n="' + bal + '"><b>' + bal + '</b><span>all of it</span></button></div><button class="linkbtn" data-act="close">Not now</button></div>';
+    } else if (s === 'edit') {
+      var e = ui.edit;
+      inner = '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><h2 id="sh-t">' + (e.id ? 'Edit task' : 'New task') + '</h2>' +
+        '<div class="field"><label for="et-label">What\'s the task?</label><input type="text" id="et-label" data-in="et-label" maxlength="28" placeholder="e.g. Pack school bag" value="' + esc(e.label) + '"></div>' +
+        '<div class="field"><span class="lbl">Picture (helps kids who can\'t read yet)</span><div class="icons">' + ICONS.map(function (ic) { return '<button data-act="et-icon" data-v="' + ic + '" aria-pressed="' + (e.icon === ic) + '">' + ic + '</button>'; }).join('') + '</div></div>' +
+        '<div class="field"><span class="lbl">Minutes earned</span><div class="stepper"><button data-act="et-min" data-n="-5" aria-label="5 minutes less">−</button><output>' + e.minutes + ' min</output><button data-act="et-min" data-n="5" aria-label="5 minutes more">+</button></div></div>' +
+        '<div class="field"><span class="lbl">Which days?</span><div class="days">' + DAYS.map(function (d, i) { return '<button data-act="et-day" data-d="' + i + '" aria-pressed="' + (e.days.indexOf(i) > -1) + '">' + d + '</button>'; }).join('') + '</div>' +
+        '<div class="row"><button class="mini" data-act="et-days" data-v="every">Every day</button><button class="mini" data-act="et-days" data-v="school">School days</button><button class="mini" data-act="et-days" data-v="weekend">Weekends</button></div></div>' +
+        '<p class="err">' + esc(ui.pinErr) + '</p>' +
+        '<div class="sheet-actions"><button class="btn" data-act="et-save">Save task</button>' + (e.id ? '<button class="btn ghost danger" data-act="et-del">Delete task</button>' : '') + '<button class="btn ghost" data-act="close">Cancel</button></div></div>';
+    } else if (s === 'confirm') {
+      var c = ui.confirm;
+      inner = '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><h2 id="sh-t">' + esc(c.title) + '</h2><p class="sub">' + esc(c.text) + '</p>' +
+        '<div class="sheet-actions"><button class="btn" data-act="confirm-yes">' + esc(c.yes) + '</button><button class="btn ghost" data-act="close">Keep it</button></div></div>';
+    }
+    return '<div class="scrim" data-act="scrim">' + inner + '</div>';
+  }
+
+  // ---------- render ----------
+  var app = document.getElementById('app');
+  function view() {
+    if (!S.kids.length) return 'onboard';
+    if (S.session) return 'timer';
+    return ui.view;
+  }
+  function render() {
+    var v = view();
+    var html = v === 'onboard' ? vOnboard() : v === 'timer' ? vTimer() : v === 'parent' ? vParent() : vKid();
+    if (v !== 'timer' && v !== 'onboard') html += sheetHtml();
+    app.innerHTML = html;
+    // animate rings from their previous value
+    var fills = app.querySelectorAll('.ring-fill[data-to]');
+    if (fills.length) requestAnimationFrame(function () { requestAnimationFrame(function () {
+      fills.forEach(function (f) { f.style.strokeDashoffset = (+f.dataset.c) * (1 - (+f.dataset.to)); });
+    }); });
+    if (ui.sheet !== render.sheet) {
+      render.sheet = ui.sheet;
+      var focusEl = app.querySelector('.sheet input, .sheet button:not(.blank)');
+      if (focusEl) focusEl.focus({ preventScroll: true });
+    }
+  }
+
+  // ---------- timer loop ----------
+  var wake = null;
+  function grabWake() { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (w) { wake = w; }).catch(function () {}); } catch (e) {} }
+  function dropWake() { try { if (wake) wake.release(); } catch (e) {} wake = null; }
+  setInterval(function () {
+    if (view() !== 'timer') return;
+    var s = S.session, ms = leftMs();
+    if (ms <= 0) {
+      if (!s.finished) { s.finished = true; save(); chime('end'); dropWake(); render(); }
+      return;
+    }
+    var n = document.getElementById('tnum');
+    if (!n) return;
+    n.textContent = fmt(ms);
+    var f = app.querySelector('.ring-fill');
+    if (f) f.style.strokeDashoffset = (+f.dataset.c) * (1 - ms / (s.total * 1000));
+    if (ms <= 60000) {
+      document.getElementById('twarn').hidden = false;
+      if (!s.warned) { s.warned = true; save(); chime('warn'); }
+    }
+  }, 250);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && view() === 'timer') { render(); if (S.session && !S.session.paused && leftMs() > 0) grabWake(); } });
+
+  // ---------- actions ----------
+  function openPin() { ui.sheet = 'pin'; ui.pin = ''; ui.pinErr = ''; render(); }
+  function pinDigit(d) {
+    if (d === 'del') { ui.pin = ui.pin.slice(0, -1); ui.pinErr = ''; render(); return; }
+    if (ui.pin.length >= 4) return;
+    ui.pin += d; ui.pinErr = '';
+    if (ui.pin.length === 4) {
+      if (ui.pin === S.pin) { ui.sheet = null; ui.view = 'parent'; ui.ptab = 'today'; ui.pin = ''; }
+      else { ui.pin = ''; ui.pinErr = 'That PIN didn\'t match. Try again.'; }
+    }
+    render();
+  }
+  function onbDigit(d) {
+    var o = ui.onb;
+    if (d === 'del') o.pin = o.pin.slice(0, -1); else if (o.pin.length < 4) o.pin += d;
+    render();
+  }
+  function loadDemo() {
+    S = blank(); S.pin = '1234';
+    var maya = newKid('Maya', 60); S.kids.push(maya);
+    maya.tasks = [0, 1, 2, 3, 4, 6].map(function (i) { return mkTask(STARTER[i]); });
+    var leo = newKid('Leo', 45); S.kids.push(leo);
+    leo.tasks = [0, 2, 4, 7, 9].map(function (i) { return mkTask(STARTER[i]); });
+    var L = logFor(maya); maya.tasks.slice(0, 3).forEach(function (t) { L.done[t.id] = { s: 'done', m: t.minutes }; });
+    // a few example past days so the history table has something to show
+    for (var back = 1; back <= 4; back++) {
+      var d = new Date(); d.setDate(d.getDate() - back);
+      maya.log[dk(d)] = { done: {}, bonus: back === 2 ? 10 : 0, spent: [40, 55, 30, 45][back - 1], carry: 0 };
+      var dl = maya.log[dk(d)];
+      maya.tasks.slice(0, 4 + (back % 2)).forEach(function (t) { dl.done[t.id] = { s: 'done', m: t.minutes }; });
+    }
+    S.active = maya.id; save();
+    ui.view = 'kid'; ui.onb.step = 0;
+    render(); toast('Example family loaded. The grown-up PIN is 1234.');
+  }
+
+  function act(el, ev) {
+    var a = el.dataset.act, k, L, t;
+    switch (a) {
+      case 'onb-next':
+        if (ui.onb.step === 1 && !ui.onb.name.trim()) { var inp = document.getElementById('onb-name'); if (inp) { inp.focus(); toast('Add your child\'s name to continue.'); } return; }
+        ui.onb.step++; render(); break;
+      case 'onb-back': ui.onb.step = Math.max(0, ui.onb.step - 1); render(); break;
+      case 'onb-cap': ui.onb.cap = +el.dataset.n; render(); break;
+      case 'onb-pick':
+        var i = +el.dataset.i, p = ui.onb.picked, ix = p.indexOf(i);
+        if (ix > -1) p.splice(ix, 1); else p.push(i); render(); break;
+      case 'onb-pd': onbDigit(el.dataset.d); break;
+      case 'onb-finish':
+        k = newKid(ui.onb.name.trim(), ui.onb.cap);
+        k.tasks = ui.onb.picked.slice().sort(function (x, y) { return x - y; }).map(function (j) { return mkTask(STARTER[j]); });
+        S.kids.push(k); S.active = k.id; S.pin = ui.onb.pin; save();
+        ui.view = 'kid'; render(); toast('All set! Press and hold “Grown-ups” to change things later.'); break;
+      case 'demo': loadDemo(); break;
+
+      case 'kid': S.active = el.dataset.id; save(); render(); break;
+      case 'task':
+        k = activeKid(); L = logFor(k); t = k.tasks.filter(function (x) { return x.id === el.dataset.id; })[0];
+        if (!t) return;
+        if (L.done[t.id]) { delete L.done[t.id]; }
+        else {
+          L.done[t.id] = { s: S.settings.approval ? 'pending' : 'done', m: t.minutes };
+          ui.pop = t.id; chime('done');
+          if (S.settings.approval) toast('Nice! A grown-up will check it.');
+        }
+        save(); render(); break;
+      case 'start-sheet': chime('warmup'); ui.sheet = 'start'; render(); break;
+      case 'go':
+        k = activeKid(); L = logFor(k);
+        var m = Math.min(+el.dataset.n, balanceOf(k, L));
+        if (m <= 0) return;
+        L.spent += m;
+        S.session = { kidId: k.id, day: dk(), total: m * 60, endsAt: Date.now() + m * 60000, paused: false, left: 0, warned: false, finished: false };
+        delete lastFrac.timer;
+        ui.sheet = null; save(); grabWake(); render(); break;
+      case 'pause':
+        var s = S.session;
+        if (s.paused) { s.endsAt = Date.now() + s.left; s.paused = false; grabWake(); }
+        else { s.left = s.endsAt - Date.now(); s.paused = true; dropWake(); }
+        save(); render(); break;
+      case 'stop':
+        var se = S.session, kk = kidById(se.kidId), refund = Math.round(leftMs() / 60000);
+        if (kk && kk.log[se.day]) kk.log[se.day].spent = Math.max(0, kk.log[se.day].spent - refund);
+        S.session = null; save(); dropWake(); render();
+        toast(refund ? refund + ' minutes went back in the jar.' : 'Timer stopped.'); break;
+      case 'end': S.session = null; save(); render(); break;
+
+      case 'close': ui.sheet = null; ui.pinErr = ''; render(); break;
+      case 'scrim': if (ev.target === el) { ui.sheet = null; ui.pinErr = ''; render(); } break;
+      case 'pd': pinDigit(el.dataset.d); break;
+      case 'forgot': ui.gate = { a: 6 + Math.floor(Math.random() * 7), b: 11 + Math.floor(Math.random() * 8) }; ui.pinErr = ''; ui.sheet = 'gate'; render(); break;
+      case 'gate-ok':
+        var ans = +(document.getElementById('gate-a').value || 0);
+        if (ans === ui.gate.a * ui.gate.b) { ui.sheet = null; ui.view = 'parent'; ui.ptab = 'settings'; ui.pinErr = ''; render(); toast('Set a new PIN below.'); var np = document.getElementById('newpin'); if (np) np.focus(); }
+        else { ui.pinErr = 'Not quite. Try again.'; render(); }
+        break;
+
+      case 'lock': ui.view = 'kid'; render(); break;
+      case 'ptab': ui.ptab = el.dataset.t; render(); break;
+      case 'bonus':
+        k = kidById(el.dataset.k); L = logFor(k); L.bonus += +el.dataset.n; save(); render(); break;
+      case 'approve': k = kidById(el.dataset.k); L = logFor(k); if (L.done[el.dataset.id]) L.done[el.dataset.id].s = 'done'; save(); render(); break;
+      case 'reject': k = kidById(el.dataset.k); L = logFor(k); delete L.done[el.dataset.id]; save(); render(); break;
+
+      case 'pkid': ui.pkid = el.dataset.id; render(); break;
+      case 'idea': k = kidById(ui.pkid); k.tasks.push(mkTask(STARTER[+el.dataset.i])); save(); render(); break;
+      case 'new-task': ui.edit = { id: null, label: '', icon: '⭐', minutes: 10, days: EVERY.slice() }; ui.pinErr = ''; ui.sheet = 'edit'; render(); break;
+      case 'edit':
+        k = kidById(ui.pkid); t = k.tasks.filter(function (x) { return x.id === el.dataset.id; })[0];
+        ui.edit = { id: t.id, label: t.label, icon: t.icon, minutes: t.minutes, days: t.days.slice() }; ui.pinErr = ''; ui.sheet = 'edit'; render(); break;
+      case 'et-icon': ui.edit.icon = el.dataset.v; render(); break;
+      case 'et-min': ui.edit.minutes = Math.max(5, Math.min(120, ui.edit.minutes + (+el.dataset.n))); render(); break;
+      case 'et-day':
+        var dd = +el.dataset.d, di = ui.edit.days.indexOf(dd);
+        if (di > -1) ui.edit.days.splice(di, 1); else ui.edit.days.push(dd); render(); break;
+      case 'et-days': ui.edit.days = (el.dataset.v === 'school' ? SCHOOL : el.dataset.v === 'weekend' ? WEEKEND : EVERY).slice(); render(); break;
+      case 'et-save':
+        var e = ui.edit;
+        if (!e.label.trim()) { ui.pinErr = 'Give the task a name.'; render(); return; }
+        if (!e.days.length) { ui.pinErr = 'Pick at least one day.'; render(); return; }
+        k = kidById(ui.pkid);
+        if (e.id) { t = k.tasks.filter(function (x) { return x.id === e.id; })[0]; t.label = e.label.trim(); t.icon = e.icon; t.minutes = e.minutes; t.days = e.days.slice(); }
+        else k.tasks.push(mkTask({ label: e.label.trim(), icon: e.icon, minutes: e.minutes, days: e.days }));
+        ui.sheet = null; save(); render(); toast('Task saved.'); break;
+      case 'et-del':
+        ui.confirm = { title: 'Delete this task?', text: '“' + ui.edit.label + '” will be removed from the list.', yes: 'Delete task', run: function () {
+          var kd = kidById(ui.pkid); kd.tasks = kd.tasks.filter(function (x) { return x.id !== ui.edit.id; });
+        } };
+        ui.sheet = 'confirm'; render(); break;
+
+      case 'kcolor': kidById(el.dataset.id).color = +el.dataset.n; save(); render(); break;
+      case 'kcap': k = kidById(el.dataset.id); k.cap = Math.max(15, Math.min(240, k.cap + (+el.dataset.n))); save(); render(); break;
+      case 'kroll': k = kidById(el.dataset.id); k.rollover = !k.rollover; save(); render(); break;
+      case 'kadd':
+        k = newKid('Kid ' + (S.kids.length + 1), 60); k.tasks = DEFAULT_PICK.map(function (j) { return mkTask(STARTER[j]); });
+        S.kids.push(k); save(); render();
+        var ni = document.getElementById('kn-' + k.id); if (ni) { ni.focus(); ni.select(); }
+        toast('Added. Type their name above.'); break;
+      case 'kdel':
+        var kid = kidById(el.dataset.id);
+        ui.confirm = { title: 'Remove ' + kid.name + '?', text: 'Their tasks and history will be erased from this device.', yes: 'Remove', run: function () {
+          S.kids = S.kids.filter(function (x) { return x.id !== kid.id; });
+          if (S.active === kid.id) S.active = S.kids[0].id;
+          if (ui.pkid === kid.id) ui.pkid = null;
+        } };
+        ui.sheet = 'confirm'; render(); break;
+
+      case 'sapprove': S.settings.approval = !S.settings.approval; save(); render(); break;
+      case 'ssound': S.settings.sound = !S.settings.sound; save(); render(); break;
+      case 'setpin':
+        var v = (document.getElementById('newpin').value || '').trim();
+        if (!/^\d{4}$/.test(v)) { toast('A PIN is exactly 4 numbers.'); return; }
+        S.pin = v; save(); render(); toast('PIN changed.'); break;
+      case 'wipe':
+        ui.confirm = { title: 'Erase everything?', text: 'All children, tasks and history on this device will be deleted. This can\'t be undone.', yes: 'Erase everything', run: function () {
+          S = blank(); ui.view = 'kid'; ui.onb = { step: 0, name: '', cap: 60, picked: DEFAULT_PICK.slice(), pin: '' };
+        } };
+        ui.sheet = 'confirm'; render(); break;
+      case 'confirm-yes':
+        ui.confirm.run(); ui.sheet = null; ui.confirm = null; save(); render(); break;
+    }
+  }
+
+  app.addEventListener('click', function (ev) {
+    var el = ev.target.closest('[data-act]');
+    if (el && app.contains(el) && !el.disabled) act(el, ev);
+    var g = ev.target.closest('[data-hold]');
+    if (g && ev.detail === 0) openPin(); // keyboard activation skips the hold
+  });
+  app.addEventListener('input', function (ev) {
+    var el = ev.target, k;
+    if (el.dataset.in === 'onb-name') ui.onb.name = el.value;
+    else if (el.dataset.in === 'et-label') ui.edit.label = el.value;
+    else if (el.dataset.in === 'kname') { k = kidById(el.dataset.id); if (k) { k.name = el.value.trim() || k.name; save(); } }
+  });
+
+  // press-and-hold to reach the grown-up area
+  var holdTimer = null, holdEl = null, held = false;
+  app.addEventListener('pointerdown', function (ev) {
+    var g = ev.target.closest('[data-hold]');
+    if (!g) return;
+    held = false; holdEl = g; g.classList.add('holding');
+    holdTimer = setTimeout(function () { held = true; g.classList.remove('holding'); openPin(); }, 1000);
+  });
+  function cancelHold() {
+    if (!holdEl) return;
+    clearTimeout(holdTimer); holdEl.classList.remove('holding');
+    if (!held) toast('Grown-ups: press and hold for a second.');
+    holdEl = null;
+  }
+  app.addEventListener('pointerup', cancelHold);
+  app.addEventListener('pointercancel', function () { if (holdEl) { clearTimeout(holdTimer); holdEl.classList.remove('holding'); holdEl = null; } });
+  app.addEventListener('contextmenu', function (ev) { if (ev.target.closest('[data-hold]')) ev.preventDefault(); });
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && ui.sheet) { ui.sheet = null; ui.pinErr = ''; render(); return; }
+    if (/^\d$/.test(ev.key) || ev.key === 'Backspace') {
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+      var d = ev.key === 'Backspace' ? 'del' : ev.key;
+      if (ui.sheet === 'pin') pinDigit(d);
+      else if (view() === 'onboard' && ui.onb.step === 3) onbDigit(d);
+    }
+  });
+
+  window.addEventListener('storage', function (ev) { if (ev.key === KEY) { S = load(); render(); } });
+  setInterval(function () { if (view() === 'kid' && !ui.sheet) { var key = dk(); if (key !== render.day) { render.day = key; render(); } } }, 30000);
+  render.day = dk();
+
+  if (S.session && !S.session.paused && leftMs() > 0) grabWake();
+  render();
+
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
+  }
+})();
+</script>
+</body>
+</html>

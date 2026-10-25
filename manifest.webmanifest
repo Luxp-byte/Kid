@@ -1,0 +1,14 @@
+{
+  "name": "Minute Jar",
+  "short_name": "Minute Jar",
+  "description": "Kids earn screen time by finishing their routines.",
+  "start_url": "app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffefae",
+  "theme_color": "#ffefae",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

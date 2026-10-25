@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Minute Jar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Kids earn screen time by finishing their routines. A friendly timer ends it, so you don't have to. No ads, no account, works offline.">
+<meta name="theme-color" content="#ffefae">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Quicksand:wght@500..700&display=swap">
+<style>
+/* Layout: lemon hero with live phone demo, a lake-colored "sound familiar" band, steps, features, a green privacy band, one pricing card, FAQ.
+   Palette: Sanzo Wada No. 290. Deliberately one light theme: the palette is the brand. */
+:root{
+  --lake:#6d4145; --lemon:#ffefae; --lincoln:#555832; --cobalt:#96d1aa;
+  --paper:#fff8d9; --sand:#f4e39c; --line:#e7d590; --mute:#7a5a52; --olive-ink:#3b3a22;
+  --display:"Young Serif",Georgia,"Times New Roman",serif;
+  --body:"Quicksand",ui-rounded,"Nunito",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--lemon);color:var(--lake);font-family:var(--body);font-weight:600;font-size:18px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.08;text-wrap:balance}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--lincoln);outline-offset:3px}
+.in{max-width:1120px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.band{padding-block:88px}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:58px;padding:14px 28px;border-radius:18px;background:var(--lake);color:var(--lemon);font-family:var(--display);font-size:20px;text-decoration:none;line-height:1.1;transition:transform .12s ease,box-shadow .2s;box-shadow:0 12px 26px -14px rgba(109,65,69,.8)}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn.ghost{background:transparent;color:var(--lake);box-shadow:inset 0 0 0 2px var(--lake)}
+.wada{display:grid;grid-template-columns:repeat(4,1fr);height:8px}
+.wada i:nth-child(1){background:var(--lake)}.wada i:nth-child(2){background:var(--lemon)}.wada i:nth-child(3){background:var(--lincoln)}.wada i:nth-child(4){background:var(--cobalt)}
+
+/* Nav */
+nav{padding-block:20px}
+nav .in{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:24px;text-decoration:none}
+.brand svg{width:36px;height:36px}
+nav .links{display:flex;gap:22px;align-items:center;font-weight:700;font-size:16px}
+nav .links a{text-decoration:none}
+nav .links a:hover{text-decoration:underline;text-underline-offset:4px}
+nav .links .btn{min-height:46px;padding:10px 20px;font-size:17px}
+
+/* Hero */
+.hero{padding-block:36px 96px}
+.hero .in{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:56px;align-items:center}
+.hero h1{font-size:clamp(46px,7.4vw,92px);letter-spacing:-.01em;margin-top:14px}
+.hero h1 em{font-style:normal;color:var(--lincoln)}
+.hero .lede{font-size:21px;max-width:34ch;margin-top:22px}
+.ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.trust{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px;padding:0;list-style:none}
+.trust li{display:flex;align-items:center;gap:8px;background:var(--paper);border-radius:999px;padding:7px 14px 7px 8px;font-size:15px;font-weight:700}
+.trust li::before{content:"";width:20px;height:20px;border-radius:50%;background:var(--lincoln) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%23ffefae' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+
+/* Phone demo */
+.demo{display:grid;justify-items:center;gap:14px}
+.phone{width:100%;max-width:340px;border-radius:44px;padding:12px;background:#2a1b1c;box-shadow:0 40px 60px -30px rgba(80,40,42,.6),0 0 0 2px #3a2627 inset}
+.screen{position:relative;border-radius:34px;background:var(--lemon);min-height:600px;overflow:hidden;padding:26px 18px 18px;display:flex;flex-direction:column;gap:14px}
+.d-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--mute);letter-spacing:.1em;text-transform:uppercase}
+.d-lock{background:var(--paper);border-radius:999px;padding:4px 10px;letter-spacing:0;text-transform:none;font-size:12px}
+.d-hello{font-family:var(--display);font-size:32px;line-height:1}
+.d-bank{background:var(--paper);border-radius:22px;padding:14px;display:grid;grid-template-columns:86px 1fr;gap:12px;align-items:center}
+.d-ring{position:relative;width:86px;height:86px}
+.d-ring svg{width:100%;height:100%}
+.d-ring b{position:absolute;inset:0;display:grid;place-items:center;align-content:center;font-family:var(--display);font-weight:400;font-size:28px;line-height:1}
+.d-ring b small{font-family:var(--body);font-size:10px;font-weight:700}
+.d-bank strong{display:block;font-family:var(--display);font-weight:400;font-size:19px;line-height:1.15}
+.d-bank span{font-size:13px;color:var(--mute)}
+.fill{transition:stroke-dashoffset .7s cubic-bezier(.3,.7,.2,1)}
+.d-tasks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.d-task{position:relative;border:0;border-radius:18px;background:var(--paper);padding:12px 8px 10px;display:grid;justify-items:center;gap:5px;font:inherit;color:inherit;cursor:pointer;transition:background .2s,transform .12s}
+.d-task:active{transform:scale(.96)}
+.d-task .pic{width:46px;height:46px;border-radius:50%;background:var(--lemon);display:grid;place-items:center;font-size:26px}
+.d-task .l{font-weight:700;font-size:14px;line-height:1.15}
+.d-task .p{font-family:var(--display);font-size:13px;background:var(--cobalt);color:var(--olive-ink);border-radius:999px;padding:1px 10px}
+.d-task[aria-pressed="true"]{background:var(--lincoln);color:var(--lemon)}
+.d-task[aria-pressed="true"] .pic{background:rgba(255,239,174,.16)}
+.d-task[aria-pressed="true"] .p{background:var(--lemon);color:var(--lincoln)}
+.d-go{margin-top:auto;border:0;border-radius:18px;min-height:56px;background:var(--lake);color:var(--lemon);font-family:var(--display);font-size:19px;cursor:pointer}
+.d-go[disabled]{opacity:.45;cursor:not-allowed}
+.d-timer{position:absolute;inset:0;background:var(--lake);color:var(--lemon);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
+.d-timer .tr{position:relative;width:210px;height:210px}
+.d-timer .tr svg{width:100%;height:100%}
+.d-timer .num{position:absolute;inset:0;display:grid;place-items:center;align-content:center;font-family:var(--display);font-size:52px;line-height:1;font-variant-numeric:tabular-nums}
+.d-timer .num small{font-family:var(--body);font-size:12px;font-weight:700;opacity:.8}
+.d-timer .warn{background:var(--lemon);color:var(--lake);border-radius:14px;padding:9px 14px;font-weight:700;font-size:14px}
+.d-timer h3{font-size:40px}
+.d-timer button{border:0;border-radius:16px;min-height:50px;padding:10px 22px;background:var(--lemon);color:var(--lake);font-family:var(--display);font-size:17px;cursor:pointer}
+.d-timer .who{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+.demo-cap{font-size:15px;color:var(--mute);text-align:center;max-width:30ch}
+.demo-cap b{color:var(--lake)}
+
+/* Sound familiar */
+.familiar{background:var(--lake);color:var(--lemon)}
+.familiar h2{font-size:clamp(36px,5vw,58px);max-width:18ch}
+.pairs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:48px}
+.pair{display:grid;gap:16px;align-content:start}
+.said{font-family:var(--display);font-size:clamp(26px,2.6vw,32px);line-height:1.15;position:relative;background:var(--lemon);color:var(--lake);border-radius:26px 26px 26px 6px;padding:22px 24px}
+.fix{font-size:18px;opacity:.92;padding-left:4px}
+.fix b{color:var(--cobalt);font-weight:700}
+
+/* Steps */
+.steps-h{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap}
+.steps-h h2{font-size:clamp(36px,5vw,58px);max-width:16ch}
+.steps-h p{max-width:34ch;color:var(--mute)}
+.steps{list-style:none;padding:0;margin:48px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;counter-reset:s}
+.steps li{counter-increment:s;background:var(--paper);border-radius:28px;padding:28px;display:grid;gap:12px;align-content:start}
+.steps li::before{content:counter(s);width:52px;height:52px;border-radius:50%;background:var(--cobalt);color:var(--olive-ink);display:grid;place-items:center;font-family:var(--display);font-size:24px}
+.steps h3{font-size:26px}
+.steps p{color:var(--mute);font-size:17px}
+
+/* Features */
+.feat-h{font-size:clamp(34px,4.4vw,52px);max-width:20ch}
+.feats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:44px;border-top:2px solid var(--line)}
+.feat{padding:26px 26px 30px 0;border-bottom:2px solid var(--line);display:grid;gap:8px;align-content:start}
+.feat:not(:nth-child(3n+1)){padding-left:26px;border-left:2px solid var(--line)}
+.feat .ic{font-size:30px;line-height:1}
+.feat h3{font-size:23px}
+.feat p{color:var(--mute);font-size:17px}
+
+/* Privacy */
+.privacy{background:var(--lincoln);color:var(--lemon)}
+.privacy .in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center}
+.privacy h2{font-size:clamp(34px,4.6vw,54px)}
+.privacy ul{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.privacy li{display:grid;grid-template-columns:30px 1fr;gap:12px;font-size:18px}
+.privacy li b{display:block;font-family:var(--display);font-weight:400;font-size:21px}
+.privacy li span{opacity:.85}
+.privacy li::before{content:"";width:30px;height:30px;border-radius:50%;background:var(--lemon) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%23555832' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/18px no-repeat}
+
+/* Pricing */
+.pricing .in{display:grid;justify-items:center;text-align:center;gap:20px}
+.pricing h2{font-size:clamp(36px,5vw,58px)}
+.price-card{width:100%;max-width:520px;background:var(--paper);border-radius:32px;padding:36px 32px;display:grid;gap:22px;box-shadow:inset 0 0 0 2px var(--line);text-align:left}
+.price{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.price b{font-family:var(--display);font-weight:400;font-size:72px;line-height:1}
+.price span{color:var(--mute);font-size:17px}
+.price-card ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.price-card li{display:flex;gap:10px;align-items:flex-start}
+.price-card li::before{content:"✓";color:var(--lincoln);font-weight:700}
+.price-card .btn{width:100%}
+.small{font-size:15px;color:var(--mute);text-align:center}
+.small a{font-weight:700}
+
+/* FAQ */
+.faq .in{max-width:820px}
+.faq h2{font-size:clamp(34px,4.4vw,50px);margin-bottom:28px}
+details{border-top:2px solid var(--line);padding-block:6px}
+details:last-of-type{border-bottom:2px solid var(--line)}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;padding-block:16px;font-family:var(--display);font-size:22px;line-height:1.25}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--body);font-weight:700;font-size:26px;line-height:1;transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding-bottom:18px;color:var(--mute);max-width:62ch}
+
+footer{padding-block:40px 56px;border-top:2px solid var(--line)}
+footer .in{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:15px;color:var(--mute)}
+
+@media (max-width:900px){
+  .hero .in,.privacy .in{grid-template-columns:1fr;gap:44px}
+  .pairs,.steps{grid-template-columns:1fr}
+  .feats{grid-template-columns:1fr 1fr}
+  .feat:not(:nth-child(3n+1)){padding-left:0;border-left:0}
+  .feat:nth-child(even){padding-left:22px;border-left:2px solid var(--line)}
+  nav .links a:not(.btn){display:none}
+  .band{padding-block:64px}
+}
+@media (max-width:560px){
+  .brand{font-size:21px;white-space:nowrap}
+  nav .links .btn{min-height:42px;padding:8px 14px;font-size:16px;white-space:nowrap}
+  .feats{grid-template-columns:1fr}
+  .feat:nth-child(even){padding-left:0;border-left:0}
+  .hero .lede{font-size:19px}
+  .screen{min-height:560px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wada" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+<nav>
+  <div class="in">
+    <a class="brand" href="#top" aria-label="Minute Jar home">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="18" y="6" width="28" height="9" rx="3" fill="#555832"/><path d="M16 18h32a4 4 0 014 4v30a8 8 0 01-8 8H20a8 8 0 01-8-8V22a4 4 0 014-4z" fill="#fff8d9" stroke="#6d4145" stroke-width="3"/><path d="M14.5 38h35v14a6 6 0 01-6 6h-23a6 6 0 01-6-6z" fill="#96d1aa"/><circle cx="32" cy="46" r="2.6" fill="#555832"/><path d="M32 46v-5" stroke="#555832" stroke-width="2.2" stroke-linecap="round"/></svg>
+      Minute Jar
+    </a>
+    <div class="links">
+      <a href="#how">How it works</a>
+      <a href="#faq">Questions</a>
+      <a class="btn" href="#pricing">Get Minute Jar</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="in">
+    <div>
+      <p class="eyebrow">For kids aged 3 to 10</p>
+      <h1>End the “five more minutes” <em>fight.</em></h1>
+      <p class="lede">Kids earn screen time by brushing teeth, reading and tidying up. When they spend it, a big friendly timer counts down and calls time. The timer says it's over, so you don't have to.</p>
+      <div class="ctas">
+        <a class="btn" href="app.html">Try it free</a>
+        <a class="btn ghost" href="#pricing">See the price</a>
+      </div>
+      <ul class="trust">
+        <li>No ads</li><li>No account</li><li>Works offline</li><li>Data stays on your device</li>
+      </ul>
+    </div>
+
+    <div class="demo">
+      <div class="phone">
+        <div class="screen" id="demo">
+          <div class="d-top"><span>Saturday</span><span class="d-lock">Grown-ups</span></div>
+          <div class="d-hello">Hi, Maya!</div>
+          <div class="d-bank">
+            <div class="d-ring"><svg viewBox="0 0 90 90" aria-hidden="true"><circle cx="45" cy="45" r="38" fill="none" stroke="#f4e39c" stroke-width="12"/><circle class="fill" id="dfill" cx="45" cy="45" r="38" fill="none" stroke="#96d1aa" stroke-width="12" stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76" transform="rotate(-90 45 45)"/></svg><b><span id="dnum">0</span><small>min</small></b></div>
+            <div><strong id="dhead">Tap a task below</strong><span id="dsub">0 of 60 earned today</span></div>
+          </div>
+          <div class="d-tasks" id="dtasks">
+            <button class="d-task" aria-pressed="false" data-m="5"><span class="pic">🪥</span><span class="l">Brush teeth</span><span class="p">+5 min</span></button>
+            <button class="d-task" aria-pressed="false" data-m="15"><span class="pic">📚</span><span class="l">Reading time</span><span class="p">+15 min</span></button>
+            <button class="d-task" aria-pressed="false" data-m="10"><span class="pic">🧸</span><span class="l">Tidy toys</span><span class="p">+10 min</span></button>
+            <button class="d-task" aria-pressed="false" data-m="5"><span class="pic">🛏️</span><span class="l">Make bed</span><span class="p">+5 min</span></button>
+          </div>
+          <button class="d-go" id="dgo" disabled>Tap a task first</button>
+          <div class="d-timer" id="dtimer" hidden></div>
+        </div>
+      </div>
+      <p class="demo-cap"><b>Try it right here.</b> Tap the tasks, then press start. The demo timer runs 60× faster.</p>
+    </div>
+  </div>
+</header>
+
+<section class="band familiar" aria-labelledby="fam-h">
+  <div class="in">
+    <p class="eyebrow" style="opacity:.8">Sound familiar?</p>
+    <h2 id="fam-h" style="margin-top:12px">Every screen-time argument, handled.</h2>
+    <div class="pairs">
+      <div class="pair"><p class="said">“Just five more minutes!”</p><p class="fix"><b>The timer decides.</b> A gentle chime gives a one-minute warning, then calls time. You're no longer the one saying no.</p></div>
+      <div class="pair"><p class="said">“But you said I could!”</p><p class="fix"><b>The deal is on the screen.</b> Every minute is earned by a task you picked, and kids can see exactly how many they have.</p></div>
+      <div class="pair"><p class="said">“Not fair, Leo got more!”</p><p class="fix"><b>Each child gets their own jar,</b> with their own tasks and daily limit, side by side on one tablet.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="how" aria-labelledby="how-h">
+  <div class="in">
+    <div class="steps-h">
+      <h2 id="how-h">Set up in two minutes. Done arguing by bedtime.</h2>
+      <p>No manual to read. If your child can tap a picture, they can use Minute Jar.</p>
+    </div>
+    <ol class="steps">
+      <li><h3>Pick a few tasks</h3><p>Choose from ready-made ideas like brushing teeth, reading or homework, or write your own. Decide how many minutes each one is worth.</p></li>
+      <li><h3>Kids tap them off</h3><p>Every finished task drops minutes into their jar. They see it fill up, and they're proud of it.</p></li>
+      <li><h3>The timer takes over</h3><p>When they spend their minutes, a big countdown starts. One minute before the end it warns them. Then it calls time.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="band" style="padding-top:0" aria-labelledby="feat-h">
+  <div class="in">
+    <h2 class="feat-h" id="feat-h">Small app. Thought through.</h2>
+    <div class="feats">
+      <div class="feat"><span class="ic" aria-hidden="true">🖼️</span><h3>Pictures for pre-readers</h3><p>Every task has a picture, so kids who can't read yet can still use it on their own.</p></div>
+      <div class="feat"><span class="ic" aria-hidden="true">✅</span><h3>You can check tasks</h3><p>Turn on approval and minutes only arrive after you confirm the bed really got made.</p></div>
+      <div class="feat"><span class="ic" aria-hidden="true">🫙</span><h3>A daily limit</h3><p>Set a most-per-day, like 60 minutes. Extra chores won't turn into an all-day screen binge.</p></div>
+      <div class="feat"><span class="ic" aria-hidden="true">🔔</span><h3>A gentle warning</h3><p>A soft chime one minute before the end gives kids time to finish the level or the episode.</p></div>
+      <div class="feat"><span class="ic" aria-hidden="true">🌙</span><h3>Save for tomorrow</h3><p>Optionally, unused minutes carry over, which quietly teaches kids to wait for something.</p></div>
+      <div class="feat"><span class="ic" aria-hidden="true">🔒</span><h3>Grown-up lock</h3><p>Settings sit behind a press-and-hold button and a 4-digit PIN. You can add bonus minutes in two taps.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band privacy" aria-labelledby="priv-h">
+  <div class="in">
+    <div>
+      <p class="eyebrow" style="opacity:.8">Privacy</p>
+      <h2 id="priv-h" style="margin-top:12px">Your family's routine is nobody else's business.</h2>
+    </div>
+    <ul>
+      <li><span><b>No account, no email</b><span>Open it and start. We never ask who you are.</span></span></li>
+      <li><span><b>No ads, ever</b><span>Nothing tries to sell to your child.</span></span></li>
+      <li><span><b>Stays on your device</b><span>Names, tasks and history are saved only on the phone or tablet you use.</span></span></li>
+      <li><span><b>Works offline</b><span>Add it to your home screen once and it works without Wi-Fi.</span></span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="band pricing" id="pricing" aria-labelledby="price-h">
+  <div class="in">
+    <h2 id="price-h">One price. No subscription.</h2>
+    <div class="price-card">
+      <div class="price"><b id="price">$9</b><span>one-time, for the whole family</span></div>
+      <ul>
+        <li>All your kids, each with their own jar</li>
+        <li>Unlimited tasks, pictures and bonus minutes</li>
+        <li>Install on any phone or tablet you own</li>
+        <li>Every future update included</li>
+      </ul>
+      <a class="btn" id="buy" href="#pricing">Buy Minute Jar</a>
+      <p class="small">Not sure yet? <a href="app.html">Try the full app free</a> first. No sign-up.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band faq" id="faq" aria-labelledby="faq-h" style="padding-top:0">
+  <div class="in">
+    <h2 id="faq-h">Questions parents ask</h2>
+    <details><summary>Does it lock the tablet or block apps?</summary><p>No. Minute Jar is a reward and timer system that makes the rules visible and fair. It doesn't control other apps. If you want hard limits too, use it alongside your device's built-in tools, such as Apple Screen Time or Google Family Link.</p></details>
+    <details><summary>What ages is it for?</summary><p>It works best for children aged about 3 to 10. Every task has a picture, so kids who can't read yet can still use it on their own.</p></details>
+    <details><summary>Do I need to create an account?</summary><p>No. There's nothing to sign up for. Open it, type your child's name and pick a PIN.</p></details>
+    <details><summary>Can two kids share one tablet?</summary><p>Yes. Each child has their own jar, tasks and daily limit. They tap their name to switch.</p></details>
+    <details><summary>Will my phone and my partner's phone stay in sync?</summary><p>Not yet. Each device keeps its own jar. Most families use one shared tablet or the kitchen phone.</p></details>
+    <details><summary>Does it need the internet?</summary><p>Only the first time you open it. After you add it to your home screen, it works offline.</p></details>
+    <details><summary>What if I forget my PIN?</summary><p>Tap “Forgot PIN?” and answer a quick grown-up multiplication question, and you can set a new one.</p></details>
+  </div>
+</section>
+
+<footer>
+  <div class="in">
+    <span>© Minute Jar</span>
+    <span>Colors from Sanzo Wada's <em>A Dictionary of Color Combinations</em>, No. 290</span>
+  </div>
+</footer>
+
+<script>
+// Set your checkout link (Stripe Payment Link, Gumroad, Lemon Squeezy...) and price here.
+var CHECKOUT_URL = '';
+var PRICE = '$9';
+
+(function () {
+  document.getElementById('price').textContent = PRICE;
+  if (CHECKOUT_URL) document.getElementById('buy').href = CHECKOUT_URL;
+
+  var CAP = 60, C = 238.76;
+  var tasks = document.getElementById('dtasks'), go = document.getElementById('dgo');
+  var fill = document.getElementById('dfill'), num = document.getElementById('dnum');
+  var head = document.getElementById('dhead'), sub = document.getElementById('dsub');
+  var timer = document.getElementById('dtimer');
+  var bal = 0, iv = null;
+
+  function update() {
+    num.textContent = bal;
+    fill.style.strokeDashoffset = C * (1 - bal / CAP);
+    head.textContent = bal ? bal + ' minutes to spend' : 'Tap a task below';
+    sub.textContent = bal + ' of ' + CAP + ' earned today';
+    go.disabled = !bal;
+    go.textContent = bal ? 'Start screen time' : 'Tap a task first';
+  }
+  tasks.addEventListener('click', function (e) {
+    var b = e.target.closest('.d-task');
+    if (!b) return;
+    var on = b.getAttribute('aria-pressed') === 'true';
+    b.setAttribute('aria-pressed', String(!on));
+    bal = Math.max(0, bal + (on ? -1 : 1) * +b.dataset.m);
+    update();
+  });
+
+  function ringSvg(frac) {
+    var c = 2 * Math.PI * 92;
+    return '<svg viewBox="0 0 210 210" aria-hidden="true"><circle cx="105" cy="105" r="92" fill="none" stroke="rgba(255,239,174,.16)" stroke-width="18"/>' +
+      '<circle id="tfill" cx="105" cy="105" r="92" fill="none" stroke="#96d1aa" stroke-width="18" stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + c * (1 - frac) + '" transform="rotate(-90 105 105)" style="transition:stroke-dashoffset .25s linear"/></svg>';
+  }
+  go.addEventListener('click', function () {
+    if (!bal) return;
+    var total = bal * 60, left = total; // demo seconds; each real second = one minute
+    timer.hidden = false;
+    timer.innerHTML = '<p class="who">Screen time · Maya</p><div class="tr">' + ringSvg(1) + '<div class="num"><span id="tn"></span><small>left</small></div></div><p class="warn" id="tw" hidden>1 minute left. Time to find a good stopping point.</p>';
+    var tn = document.getElementById('tn'), tf = document.getElementById('tfill'), tw = document.getElementById('tw'), c = 2 * Math.PI * 92;
+    function draw() {
+      var m = Math.floor(left / 60), s = Math.floor(left % 60);
+      tn.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      tf.style.strokeDashoffset = c * (1 - left / total);
+      tw.hidden = left > 60;
+    }
+    draw();
+    clearInterval(iv);
+    iv = setInterval(function () {
+      left = Math.max(0, left - 15); // 0.25s tick x 60 speed = 15 demo seconds
+      if (left <= 0) {
+        clearInterval(iv);
+        timer.innerHTML = '<h3>Time\'s up!</h3><p>Screens off, Maya.<br>Great job sticking to it.</p><button type="button" id="tback">Back to my jar</button>';
+        document.getElementById('tback').addEventListener('click', reset);
+        return;
+      }
+      draw();
+    }, 250);
+  });
+  function reset() {
+    timer.hidden = true; timer.innerHTML = ''; bal = 0;
+    tasks.querySelectorAll('.d-task').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    update();
+  }
+  update();
+})();
+</script>
+</body>
+</html>
